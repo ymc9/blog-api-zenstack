@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+plugin zod {
+  provider = "@core/zod"
+  modelOnly = true
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  email String @unique
+  posts Post[]
+  spaceMembership SpaceUser[]
+  ownedSpaces Space[]
+
+  @@allow('read,create', true)
+  @@allow('all', auth() == this)
+}
+
+model Space {
+  id Int @id @default(autoincrement())
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId Int
+  name String
+  slug String @unique
+  posts Post[]
+  members SpaceUser[]
+
+  @@allow('read', true)
+  @@allow('all', auth() == owner || members?[user == auth() && role == ADMIN])
+}
+
+enum SpaceUserRole {
+  MEMBER
+  ADMIN
+}
+
+model SpaceUser {
+  id Int @id @default(autoincrement())
+  space Space @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+  role SpaceUserRole @default(MEMBER)
+
+  @@unique([spaceId, userId])
+
+  @@allow('read', true)
+  @@allow('all', space.owner == auth() || space.members?[user == auth() && role == ADMIN])
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  title String
+  published Boolean @default(false)
+  author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int?
+  space Space? @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId Int?
+
+  @@allow('all', 
+    auth() == author // author has full access
+    || space.owner == auth() // space owner has full access
+    || space.members?[user == auth() && role == ADMIN]) // space admin has full access
+
+  // published posts can be read by anyone in the space
+  @@allow('read', published && space.members?[user == auth()])
+}
