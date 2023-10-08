@@ -1,1 +1,5 @@
-This is the ZenStack version of sample project used by the blog post: [Drizzle or Prisma? I Built an App Twice to Find Out Which Is Better](https://zenstack.dev/blog/drizzle-prisma/).
+This is the [ZenStack](https://github.com/zenstackhq/zenstack) version of sample project used by the blog post: [Drizzle or Prisma? I Built an App Twice to Find Out Which Is Better](https://zenstack.dev/blog/drizzle-prisma/).
+
+ZenStack helps you build scalable web apps with minimal code by using schema as the single source of truth.
+
+[https://github.com/zenstackhq/zenstack](https://github.com/zenstackhq/zenstack)
